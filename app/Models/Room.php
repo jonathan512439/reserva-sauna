@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Room extends Model
 {
     use HasFactory;
+    protected $fillable = ['name'];  // Otros atributos de la sala que tengas
+
      // Define the relationship with reservations
      public function reservations()
      {

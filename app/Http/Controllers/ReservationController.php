@@ -5,35 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class ReservationController extends Controller
 {
     // Mostrar todas las reservas del usuario autenticado
     public function index()
-    {
-        $reservations = Reservation::where('user_id', Auth::id())->with('room')->get();
-        return view('reservations.index', compact('reservations'));
-    }
+{
+    $reservations = auth()->user()->reservations; // Obtener las reservas del usuario autenticado
+    return view('dashboard', compact('reservations'));
+}
+public function create()
+{
+    // Obtener todas las salas disponibles
+    $rooms = Room::all(); // Asegúrate de que Room sea el modelo de la tabla de salas
 
+    return view('reservations.create', compact('rooms'));
+}
     // Crear una nueva reserva
     public function store(Request $request)
     {
         $request->validate([
-            'room_id' => 'required|exists:rooms,id',
+            'room_id' => 'required|exists:rooms,id',  // Asegura que la sala existe
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'status' => 'required|in:pending,confirmed,completed,cancelled',
         ]);
 
-        $reservation = Reservation::create([
-            'user_id' => Auth::id(),
+        auth()->user()->reservations()->create([
             'room_id' => $request->room_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
-            'status' => 'pending',
+            'status' => $request->status,
         ]);
 
-        return response()->json($reservation, 201);
+        return redirect()->route('dashboard')->with('success', 'Reserva creada exitosamente.');
     }
+
 
     // Mostrar una reserva específica
     public function show($id)
@@ -65,4 +73,9 @@ class ReservationController extends Controller
 
         return response()->json(null, 204);
     }
+    public function create()
+    {
+    return view('reservations.create'); // Asegúrate de crear la vista en resources/views/reservations/create.blade.php
+    }
+
 }
